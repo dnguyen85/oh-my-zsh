@@ -2,15 +2,15 @@
 
 _emacsfun()
 {
-    # get list of available X windows.
-    x=`emacsclient --alternate-editor '' --eval '(x-display-list)' 2>/dev/null`
+    # get list of emacs frames.
+    frameslist=`emacsclient --alternate-editor '' --eval '(frame-list)' 2>/dev/null | egrep -o '(frame)+'`
 
-    if [ -z "$x" ] || [ "$x" = "nil" ] ;then
-        # Create one if there is no X window yet.
-        emacsclient --alternate-editor "" --create-frame "$@"
-    else
+    if [ "$(echo "$frameslist" | sed -n '$=')" -ge 2 ] ;then
         # prevent creating another X frame if there is at least one present.
         emacsclient --alternate-editor "" "$@"
+    else
+        # Create one if there is no X window yet.
+        emacsclient --alternate-editor "" --create-frame "$@"
     fi
 }
 
@@ -20,7 +20,8 @@ _emacsfun()
 # tempfile. (first argument will be `--no-wait` passed in by the plugin.zsh)
 if [ "$#" -ge "2" -a "$2" = "-" ]
 then
-    tempfile="$(mktemp emacs-stdin-$USER.XXXXXXX --tmpdir)"
+    tempfile="$(mktemp --tmpdir emacs-stdin-$USER.XXXXXXX 2>/dev/null \
+                || mktemp -t emacs-stdin-$USER)" # support BSD mktemp
     cat - > "$tempfile"
     _emacsfun --no-wait $tempfile
 else

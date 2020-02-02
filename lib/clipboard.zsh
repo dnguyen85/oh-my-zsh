@@ -24,20 +24,20 @@ function clipcopy() {
     else
       cat $file | pbcopy
     fi
-  elif [[ $OSTYPE == cygwin* ]]; then
+  elif [[ $OSTYPE == (cygwin|msys)* ]]; then
     if [[ -z $file ]]; then
       cat > /dev/clipboard
     else
       cat $file > /dev/clipboard
     fi
   else
-    if which xclip &>/dev/null; then
+    if (( $+commands[xclip] )); then
       if [[ -z $file ]]; then
         xclip -in -selection clipboard
       else
         xclip -in -selection clipboard $file
       fi
-    elif which xsel &>/dev/null; then
+    elif (( $+commands[xsel] )); then
       if [[ -z $file ]]; then
         xsel --clipboard --input 
       else
@@ -71,12 +71,12 @@ function clippaste() {
   emulate -L zsh
   if [[ $OSTYPE == darwin* ]]; then
     pbpaste
-  elif [[ $OSTYPE == cygwin* ]]; then
+  elif [[ $OSTYPE == (cygwin|msys)* ]]; then
     cat /dev/clipboard
   else
-    if which xclip &>/dev/null; then
+    if (( $+commands[xclip] )); then
       xclip -out -selection clipboard
-    elif which xsel &>/dev/null; then
+    elif (( $+commands[xsel] )); then
       xsel --clipboard --output
     else
       print "clipcopy: Platform $OSTYPE not supported or xclip/xsel not installed" >&2
